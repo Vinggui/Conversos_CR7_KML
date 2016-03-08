@@ -47,12 +47,12 @@ public class converter {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 openFile = new JFileChooser();
-                int returnVal = openFile.showOpenDialog(null);
+                openFile.setMultiSelectionEnabled(true);
+                openFile.showOpenDialog(null);
                 
-                if(returnVal == JFileChooser.APPROVE_OPTION) {
-                System.out.println("You chose to open this file: " +
-                    openFile.getSelectedFile().getName());
-                }
+                //if(returnVal == JFileChooser.APPROVE_OPTION) {
+                    
+                //}
             }
         });
 
@@ -76,73 +76,102 @@ public class converter {
         String pathLineColor = "FF0000FF";
         String pathLineWidth = "3";
         
-        String name = "Name";
+        String name = "";
         String description = "none";
         
         
-        String output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<kml xmlns=\"http://www.opengis.net/kml/2.2\">"
-                + "<Document><name>My document</name>"
-                + "<description>Content</description>"
-                + "<Style id=\"Lump\">"
-                + "<LineStyle><color>";
         try {
-            if(openFile.getSelectedFile().exists()) {
-                //Check if user wants to input more info
-                if(false) {
-                    //TODO ...
-                }
-                
-                output += lumpLineColor;
-                output += "</color><width>";
-                output += lumpLineWidth;
-                output += "</width></LineStyle><PolyStyle><color>";
-                output += lumpPolygonColor;
-                output += "</color></PolyStyle>"
-                        + "</Style>"
-                        + "<Style id=\"Path\">"
-                        + "<LineStyle><color>";
-                output += pathLineColor;
-                output += "</color><width>";
-                output += pathLineWidth;
-                output += "</width></LineStyle>"
-                        + "</Style>"
-                        + "<Style id=\"markerstyle\">"
-                        + "<IconStyle><Icon><href>"
-                        + "http://maps.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png"
-                        + "</href></Icon></IconStyle>"
-                        + "</Style>"
-                        + "<Placemark><name>";
-                output += name;
-                output += "</name><description>";
-                output += description;
-                output += "</description>"
-                        + "<styleUrl>#Path</styleUrl>"
-                        + "<LineString>"
-                        + "<tessellate>1</tessellate>"
-                        + "<altitudeMode>clampToGround</altitudeMode>"
-                        + "<coordinates>";
-                
-                
-                File file = openFile.getSelectedFile();
-                //String content = ;
-                fileScanner = new Scanner(file);
-                
-                while(fileScanner.hasNext()) {
-                    line = fileScanner.nextLine();
-                    String[] tokens = line.split(",");
-                    String newLine = tokens[0] + "," + tokens[1] + ",0.0 ";
-                    output += newLine;
-                    System.out.println(newLine);
-                }
+            if(openFile.getSelectedFiles().length > 0) {
+                for(int fileCounter=0; fileCounter < openFile.getSelectedFiles().length; fileCounter++) {
+                    File[] files = openFile.getSelectedFiles();
+                    File file = files[fileCounter];
+                    String fileName = file.getName();
+                    int dotIndex = fileName.lastIndexOf('.');
+                    String extension = "";
+                    if (dotIndex > 0) {
+                        extension = fileName.substring(dotIndex+1);
+                    }
+                    
+                    if(extension.equalsIgnoreCase(".txt")) {
+                        //Ignore files with wrong extension then .txt
+                        continue;
+                    }
+                    
 
-                output += "</coordinates>"
-                        + "</LineString>"
-                        + "</Placemark>"
-                        + "</Document>"
-                        + "</kml>";
+                    String output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                            + "<kml xmlns=\"http://www.opengis.net/kml/2.2\">"
+                            + "<Document><name>My document</name>"
+                            + "<description>Content</description>"
+                            + "<Style id=\"Lump\">"
+                            + "<LineStyle><color>";
+                    
+                    //Check if user wants to input more info
+                    //if(false) {
+                        //TODO ...
+                    //} else {
+                        name = fileName.substring(0,dotIndex);
+                    //}
+                    
+                    output += lumpLineColor;
+                    output += "</color><width>";
+                    output += lumpLineWidth;
+                    output += "</width></LineStyle><PolyStyle><color>";
+                    output += lumpPolygonColor;
+                    output += "</color></PolyStyle>"
+                            + "</Style>"
+                            + "<Style id=\"Path\">"
+                            + "<LineStyle><color>";
+                    output += pathLineColor;
+                    output += "</color><width>";
+                    output += pathLineWidth;
+                    output += "</width></LineStyle>"
+                            + "</Style>"
+                            + "<Style id=\"markerstyle\">"
+                            + "<IconStyle><Icon><href>"
+                            + "http://maps.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png"
+                            + "</href></Icon></IconStyle>"
+                            + "</Style>"
+                            + "<Placemark><name>";
+                    output += name;
+                    output += "</name><description>";
+                    output += description;
+                    output += "</description>"
+                            + "<styleUrl>#Lump</styleUrl>"
+                            + "<Polygon>"
+                            + "<tessellate>1</tessellate>"
+                            + "<altitudeMode>clampToGround</altitudeMode>"
+                            + "<outerBoundaryIs><LinearRing><coordinates>";
+                    
+                    //String content = ;
+                    fileScanner = new Scanner(file);
+                    
+                    boolean first = true;
+                    String firstPoint = "";
+                    while(fileScanner.hasNext()) {
+                        line = fileScanner.nextLine();
+                        String[] tokens = line.split(",");
+                        String newLine = tokens[1] + "," + tokens[0] + ",0.0 ";
+                        output += newLine;
+                        if(first) {
+                            firstPoint = newLine;
+                            first = false;
+                        }
+                    }
+                    output += firstPoint;
+    
+                    output += "</coordinates></LinearRing></outerBoundaryIs>"
+                            + "</Polygon>"
+                            + "</Placemark>"
+                            + "</Document>"
+                            + "</kml>";
 
-                System.out.println(output);
+                    String outputFilePath = file.getParent() + "/" + file.getName().replace(".txt", ".kml");
+                    PrintWriter writer = new PrintWriter(outputFilePath, "UTF-8");
+                    writer.print(output);
+                    writer.close();
+                    
+                    System.out.println("File "+fileName+" compiled."+ outputFilePath);
+                }
             }
         } catch(Exception e) {
             System.out.println("Erro de conversão: " + e);
