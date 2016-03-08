@@ -109,7 +109,7 @@ public class converter {
                     //if(false) {
                         //TODO ...
                     //} else {
-                        name = fileName.substring(0,dotIndex);
+                        name = fileName.substring(0,dotIndex-2);//Até o "_C.txt"
                     //}
                     
                     output += lumpLineColor;
