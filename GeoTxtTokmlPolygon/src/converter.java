@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -46,7 +47,15 @@ public class converter {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                openFile = new JFileChooser();
+                File currentPath = null;
+                try {
+                    currentPath = new File(converter.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                } catch(Exception e) {
+                    
+                }
+                openFile = new JFileChooser(currentPath);
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("GeoTxt files", "txt");
+                openFile.setFileFilter(filter);
                 openFile.setMultiSelectionEnabled(true);
                 openFile.showOpenDialog(null);
                 
